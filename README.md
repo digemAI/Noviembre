@@ -1,19 +1,15 @@
 🟣 Noviembre
 
 Un diario emocional moderno con sabor a IA.
-
 Noviembre es un espacio pensado para quienes desean expresar lo que sienten, reflexionar, seguir metas y registrar momentos importantes… sin juicios, sin presión, sin prisa.
 
 No intenta decirte qué hacer.
-Solo te acompaña en el camino.
 Tú marcas el ritmo — la app solo camina contigo.
 
 🧠 Estado actual del proyecto
 
-Hoy funciona como diario emocional con respuestas empáticas y detección sencilla de emociones, pero su visión completa va más lejos.
-
-La versión actual es pre-IA.
-Su expansión llegará cuando finalice la etapa de módulos de Inteligencia Artificial.
+La versión actual es pre-IA, hoy funciona como diario emocional con respuestas empáticas y detección sencilla de emociones, pero su visión completa va más lejos.
+Su expansión llegará cuando finalice los módulos de Inteligencia Artificial.
 
 🔥 ¿Qué hace actualmente?
 
@@ -21,9 +17,6 @@ Su expansión llegará cuando finalice la etapa de módulos de Inteligencia Arti
 ✔ Ver un historial acompañado de una interfaz suave y presente  
 ✔ Respuestas empáticas que se adaptan al tono de la conversación  
 ✔ Detección simple de emociones para colorear la experiencia  
-
-Hoy no pretende parecer “inteligente”.
-Hoy pretende estar presente.
 
 🌱 ¿Hacia dónde crecerá?
 
@@ -36,8 +29,6 @@ La evolución futura incluirá:
 • Exportación de entradas (PDF/CSV)  
 • Aplicación móvil  
 
-Noviembre no está terminado — crecerá a la par conmigo.
-
 🛠️ Tecnologías utilizadas
 
 Área | Tecnología
@@ -47,6 +38,3 @@ Base de datos | SQLite
 Backend | Python
 Gestión emocional | Detección de palabras clave
 Estilo visual | UI minimalista oscura tipo diario
-
-🚀 Ejecutar el proyecto en local
-
