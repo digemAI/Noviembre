@@ -1,8 +1,12 @@
 venv/
 data/
+Data/
 *.bak
-__pycache__/
+*.db
+*.json
+*.zip\
 *.pyc
+__pycache__/
 database.db
 .streamlit/
-
+.DS_Store
