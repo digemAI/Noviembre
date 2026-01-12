@@ -1,5 +1,8 @@
 venv/
+data/
+*.bak
 __pycache__/
 *.pyc
 database.db
 .streamlit/
+

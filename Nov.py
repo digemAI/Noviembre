@@ -1,29 +1,26 @@
 import streamlit as st
 import random
-from utils.db import init_db  # lo dejamos por compatibilidad con las otras páginas
+from utils.db import init_db
 
-# ------------------ CONFIG BÁSICA ------------------
 
+# Configuramos el título, icono, y preparamos la base de datos.
 st.set_page_config(page_title="Noviembre", page_icon="🟣")
 init_db()
 
-# ------------------ ESTADO INICIAL ------------------
-
+# Guardamos nombre, chat, icono, y número de turnos del usuario.
 if "nombre" not in st.session_state:
     st.session_state["nombre"] = None
 
 if "chat" not in st.session_state:
-    # cada mensaje: {"role": "user"/"bot", "text": "...", "emotion": "alegria"/"tristeza"/...}
     st.session_state["chat"] = []
 
 if "logo_icon" not in st.session_state:
-    st.session_state["logo_icon"] = "🟣"  # neutro
+    st.session_state["logo_icon"] = "🟣"  
 
 if "turnos_usuario" not in st.session_state:
     st.session_state["turnos_usuario"] = 0
 
-# ------------------ DETECCIÓN SENCILLA DE EMOCIÓN ------------------
-
+# Deteccion por palabra clave 
 def detectar_emocion(texto: str) -> str:
     t = texto.lower()
 
@@ -69,7 +66,7 @@ def detectar_emocion(texto: str) -> str:
         "me sorprendió", "me sorprendio", "pasó algo", "paso algo"
     ]
 
-    # prioridad de detección
+    # prioridad de deteccion
     for w in palabras_ira:
         if w in t:
             return "ira"
@@ -91,7 +88,7 @@ def detectar_emocion(texto: str) -> str:
 
     return "neutral"
 
-
+# Convierte la emoción detectada en un icono/bolita de color para el encabezado.
 def emocion_a_icono(emocion: str) -> str:
     mapa = {
         "alegria": "🟡",
@@ -105,9 +102,9 @@ def emocion_a_icono(emocion: str) -> str:
     return mapa.get(emocion, "🟣")
 
 
-# ------------------ RESPUESTAS HUMANAS ------------------
-
+# Respuestas predefinidas, acompaña y abre conversación.
 def construir_respuesta(texto_usuario: str, nombre: str, emocion: str, turno: int):
+
     # Primer mensaje: abrir espacio
     if turno == 1:
         if nombre:
@@ -192,8 +189,7 @@ def construir_respuesta(texto_usuario: str, nombre: str, emocion: str, turno: in
     return random.choice(opciones), "neutral"
 
 
-# ------------------ ESTILOS (Burbujas y tarjeta flotante) ------------------
-
+# Estilos Burbujas y tarjeta flotante
 st.markdown(
     """
 <style>
@@ -261,7 +257,7 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-
+# Función para dibujar burbujas con estilos.
 def mostrar_burbuja(texto: str, role: str, emocion: str = "neutral"):
     if role == "user":
         css_class = "bubble user-bubble"
@@ -270,9 +266,9 @@ def mostrar_burbuja(texto: str, role: str, emocion: str = "neutral"):
     st.markdown(f"<div class='{css_class}'>{texto}</div>", unsafe_allow_html=True)
 
 
-# ------------------ PANTALLA: PREGUNTAR NOMBRE ------------------
-
+# Si no sabemos cómo se llama el usuario, primero pedimos el nombre.
 if st.session_state["nombre"] is None:
+
     # encabezado neutro
     st.markdown(
         """
@@ -295,8 +291,7 @@ if st.session_state["nombre"] is None:
 
     st.stop()
 
-# ------------------ PANTALLA PRINCIPAL DE CHAT ------------------
-
+# mostramos el encabezado y el historial para escribir.
 nombre = st.session_state["nombre"]
 icono_actual = st.session_state["logo_icon"]
 
@@ -324,8 +319,7 @@ for msg in st.session_state["chat"]:
 
 st.markdown("</div>", unsafe_allow_html=True)
 
-# ------------------ FORMULARIO DE ENTRADA (ENTER = enviar) ------------------
-
+# Enter
 with st.form("chat_form", clear_on_submit=True):
     texto_usuario = st.text_input(
         label="",
@@ -334,10 +328,11 @@ with st.form("chat_form", clear_on_submit=True):
     )
     enviado = st.form_submit_button("➤")
 
+# Guardamos mensaje usuario en historial, detectamos respuesta/icono y refrescamos pantalla
 if enviado and texto_usuario.strip():
     contenido = texto_usuario.strip()
 
-    # guardamos mensaje del usuario en el historial (solo en sesión)
+    # guardamos mensaje del usuario en el historial
     st.session_state["chat"].append(
         {"role": "user", "text": contenido, "emotion": None}
     )
@@ -348,7 +343,7 @@ if enviado and texto_usuario.strip():
     emocion_detectada = detectar_emocion(contenido)
     st.session_state["logo_icon"] = emocion_a_icono(emocion_detectada)
 
-    # construir respuesta humana
+    # construir respuesta
     respuesta, emocion_respuesta = construir_respuesta(
         contenido,
         nombre,

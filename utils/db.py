@@ -16,7 +16,8 @@ def init_db():
     """)
     conn.commit()
     conn.close()
-
+    
+# Guardamos en la base de datos (SQLite) como historial
 def insertar(tipo, contenido, extra=""):
     conn = sqlite3.connect(DB_NAME)
     c = conn.cursor()

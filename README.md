@@ -1,40 +1,54 @@
 🟣 Noviembre
 
-Un diario emocional moderno con sabor a IA.
-Noviembre es un espacio pensado para quienes desean expresar lo que sienten, reflexionar, seguir metas y registrar momentos importantes… sin juicios, sin presión, sin prisa.
+Es una aplicación de diario emocional y reflexión personal construida con Python y Streamlit.  
+Permite registrar emociones, pensamientos, metas y momentos importantes, y almacenarlos en una memoria persistente que evoluciona con el tiempo.
 
-No intenta decirte qué hacer.
-Tú marcas el ritmo — la app solo camina contigo.
+No es un chatbot.  
+No es una app de productividad.  
+Es un espacio para escribir, guardar y observar tu propio proceso.
 
-🧠 Estado actual del proyecto
+🧠  ¿Qué hace hoy (V1)?
 
-La versión actual es pre-IA, hoy funciona como diario emocional con respuestas empáticas y detección sencilla de emociones, pero su visión completa va más lejos.
-Su expansión llegará cuando finalice los módulos de Inteligencia Artificial.
+    😶‍🌫️ Emociones  
+    Registra cómo te sientes y lo que quieras expresar en ese momento.
 
-🔥 ¿Qué hace actualmente?
+    💭 Reflexiones  
+    Un espacio para pensamientos, ideas o diálogo interno.
 
-✔ Registrar pensamientos, emociones, metas y momentos  
-✔ Ver un historial acompañado de una interfaz suave y presente  
-✔ Respuestas empáticas que se adaptan al tono de la conversación  
-✔ Detección simple de emociones para colorear la experiencia  
+    🎯 Metas  
+    Define objetivos con fecha y motivo.
 
-🌱 ¿Hacia dónde crecerá?
+    📌 Momentos importantes  
+    Guarda eventos que te marcaron, junto con su intensidad.
+
+💾 Memoria viva
+Cada vez que se guarde algo, Noviembre:
+
+ Lo escribe en la base de datos.
+ Lo agrega al archivo noviembre_memory.json.
+ Crea un backup automático.
+
+🌱 ¿Hacia dónde crecerá (V2)?
 
 La evolución futura incluirá:
 
-• NLP avanzado para interpretación emocional real  
-• Memoria a largo plazo diseñada para privacidad y bienestar  
-• Respuestas dinámicas con personalidad humana natural  
-• Recomendaciones basadas en crecimiento personal  
-• Exportación de entradas (PDF/CSV)  
-• Aplicación móvil  
+ NLP avanzado para interpretación emocional real.
+ Respuestas más dinámicas basadas en crecimiento personal.
+ Visualizaciones de patrones emocionales.   
+ Exportación de entradas (PDF/CSV)  
+ Aplicación móvil para llevar tu diario a cualquier parte.
 
 🛠️ Tecnologías utilizadas
 
-Área | Tecnología
---- | ---
-Framework front | Streamlit
-Base de datos | SQLite
-Backend | Python
-Gestión emocional | Detección de palabras clave
-Estilo visual | UI minimalista oscura tipo diario
+ Python
+ Streamlit
+ Json
+
+## ▶️ Cómo ejecutar
+
+- Clona el repositorio en tu máquina  
+- Entra a la carpeta del proyecto (cd noviembre)  
+- Crea un entorno virtual  
+- Activa tu entorno virtual  
+- Instala las dependencias  
+- Ejecuta la aplicación (streamlit run app.py)
