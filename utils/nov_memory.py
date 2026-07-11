@@ -3,18 +3,20 @@ import os
 from datetime import datetime
 from pathlib import Path
 
-# Carpeta donde se guarda la memoria
+# Folder where persistent memory lives
 BASE_PATH = "Data"
 
-# Lo que recuerda Noviembre
+# File that holds what Noviembre remembers
 MEMORY_FILE = os.path.join(BASE_PATH, "noviembre_memory.json")
 
-# Fecha y hora actual en formato texto
+
 def _now():
+    """Return the current timestamp as an ISO-formatted string."""
     return datetime.now().isoformat(timespec="seconds")
 
-# Se asegura de que exista la carpeta Data 
+
 def ensure_storage():
+    """Create the Data folder and memory file if they don't exist."""
     if not os.path.exists(BASE_PATH):
         os.makedirs(BASE_PATH)
 
@@ -22,53 +24,56 @@ def ensure_storage():
         with open(MEMORY_FILE, "w", encoding="utf-8") as f:
             json.dump({"entries": []}, f, indent=2, ensure_ascii=False)
 
-# Memoria actualizada en disco como JSON
+
 def load_memory():
+    """Load and return the current memory state from disk."""
     ensure_storage()
     with open(MEMORY_FILE, "r", encoding="utf-8") as f:
         return json.load(f)
-    
-# Se guarda memoria en json
+
+
 def save_memory(data):
+    """Persist the given memory state to the JSON file on disk."""
     with open(MEMORY_FILE, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
 
 
 def backup_if_exists():
+    """Back up the current memory file before it gets overwritten."""
     if os.path.exists(MEMORY_FILE):
         backup_name = f"noviembre_memory_backup_{_now().replace(':','-')}.json"
         backup_path = os.path.join(BASE_PATH, backup_name)
 
-        # Copiamos el archivo actual a un backup
+        # Copy current file content into a timestamped backup
         with open(MEMORY_FILE, "r", encoding="utf-8") as src:
             with open(backup_path, "w", encoding="utf-8") as dst:
                 dst.write(src.read())
 
-# Entrada a memoria (category, text, mood) con backup previo
-def append_entry(category, text, mood=None):
+
+def append_entry(entry):
+    """Stamp the given entry dict with a timestamp and store it in memory."""
     backup_if_exists()
     data = load_memory()
 
-    entry = {
-        "timestamp": _now(),
-        "category": category,
-        "text": text,
-        "mood": mood
-    }
+    # Copy so the caller's dict isn't mutated, then stamp the time
+    entry = dict(entry)
+    entry["timestamp"] = _now()
 
- # Agregamos a la lista de recuerdos y guardamos todo de nuevo en el archivo JSON
+    # Add the new entry and persist the full memory back to disk
     data["entries"].append(entry)
     save_memory(data)
 
-# Devolvemos los recuerdos o solo los de una categoría
-def get_entries(category=None):
+
+def get_entries(section=None):
+    """Return all entries, optionally filtered by section."""
     data = load_memory()
-    if category:
-        return [e for e in data["entries"] if e["category"] == category]
+    if section:
+        return [e for e in data["entries"] if e.get("section") == section]
     return data["entries"]
 
-# Último recuerdo guardado
+
 def get_last_entry():
+    """Return the most recently saved memory entry, if any exists."""
     data = load_memory()
     if "entries" in data and len(data["entries"]) > 0:
         return data["entries"][-1]

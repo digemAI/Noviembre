@@ -2,7 +2,9 @@ import sqlite3
 
 DB_NAME = "database.db"
 
+
 def init_db():
+    """Create the registros table if it doesn't exist yet."""
     conn = sqlite3.connect(DB_NAME)
     c = conn.cursor()
     c.execute("""
@@ -16,9 +18,10 @@ def init_db():
     """)
     conn.commit()
     conn.close()
-    
-# Guardamos en la base de datos (SQLite) como historial
+
+
 def insertar(tipo, contenido, extra=""):
+    """Insert a new record into the registros table as historial."""
     conn = sqlite3.connect(DB_NAME)
     c = conn.cursor()
     c.execute("""
@@ -28,7 +31,9 @@ def insertar(tipo, contenido, extra=""):
     conn.commit()
     conn.close()
 
+
 def leer_todo():
+    """Return every stored record ordered from oldest to newest."""
     conn = sqlite3.connect(DB_NAME)
     c = conn.cursor()
     c.execute("SELECT * FROM registros ORDER BY fecha ASC")
