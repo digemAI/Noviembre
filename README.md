@@ -1,54 +1,31 @@
-🟣 Noviembre
+Noviembre
 
-Es una aplicación de diario emocional y reflexión personal construida con Python y Streamlit.  
-Permite registrar emociones, pensamientos, metas y momentos importantes, y almacenarlos en una memoria persistente que evoluciona con el tiempo.
+An emotional journaling companion built with Streamlit — it listens, remembers, and helps the user understand what they're going through, one entry at a time.
 
-No es un chatbot.  
-No es una app de productividad.  
-Es un espacio para escribir, guardar y observar tu propio proceso.
+What it does today
 
-🧠  ¿Qué hace hoy (V1)?
 
-    😶‍🌫️ Emociones  
-    Registra cómo te sientes y lo que quieras expresar en ese momento.
+Structured journaling across four entry types — emotions, reflections, goals, and important moments — each with its own guided prompts and a warm, non-generic response.
 
-    💭 Reflexiones  
-    Un espacio para pensamientos, ideas o diálogo interno.
+Freeform conversational chat with lightweight keyword-based emotion detection (joy, sadness, anger, reflection, goal, moment) that adapts the reply and the UI's color accent in real time.
 
-    🎯 Metas  
-    Define objetivos con fecha y motivo.
+Persistent memory on two layers: every entry is written to SQLite as a flat history log, and to a structured JSON memory file with timestamps and categories — the app remembers across sessions, not just within one.
 
-    📌 Momentos importantes  
-    Guarda eventos que te marcaron, junto con su intensidad.
+A calm, consistent visual identity (color-coded chat bubbles per detected emotion, minimal UI) that reinforces the product's tone: presence over productivity.
 
-💾 Memoria viva
-Cada vez que se guarde algo, Noviembre:
 
- Lo escribe en la base de datos.
- Lo agrega al archivo noviembre_memory.json.
- Crea un backup automático.
+Where it's going
 
-🌱 ¿Hacia dónde crecerá (V2)?
+This is V1 of a 9-stage roadmap — the foundation, not the finished product. Noviembre is under active development: future versions deepen the conversational tone, add real pattern recognition across entries, and move from keyword matching toward genuine NLP-based interpretation, while staying true to what it's meant to be — presence, not productivity.
 
-La evolución futura incluirá:
+Architecture
 
- NLP avanzado para interpretación emocional real.
- Respuestas más dinámicas basadas en crecimiento personal.
- Visualizaciones de patrones emocionales.   
- Exportación de entradas (PDF/CSV)  
- Aplicación móvil para llevar tu diario a cualquier parte.
-
-🛠️ Tecnologías utilizadas
-
- Python
- Streamlit
- Json
-
-## ▶️ Cómo ejecutar
-
-- Clona el repositorio en tu máquina  
-- Entra a la carpeta del proyecto (cd noviembre)  
-- Crea un entorno virtual  
-- Activa tu entorno virtual  
-- Instala las dependencias  
-- Ejecuta la aplicación (streamlit run app.py)
+Nov.py                 # Main chat screen — keyword-based emotion detection, conversational replies
+pages/
+  1_Emotions.py          # Structured emotion entry
+  2_Reflections.py       # Structured reflection entry
+  3_Goals.py              # Goal entry with target date
+  4_Moments.py             # Important-moment entry with impact rating
+utils/
+  sqlite_store.py       # SQLite persistence layer
+  nov_memory.py          # JSON-based long-term memory (append_entry, get_entries, get_last_entry)

@@ -1,13 +1,14 @@
 import streamlit as st
 import random
-from utils.db import init_db
+from utils.sqlite_store import init_db, insertar
+from utils.nov_memory import append_entry
 
 
-# Configuramos el título, icono, y preparamos la base de datos.
+# Set page title, icon, and prepare the SQLite database
 st.set_page_config(page_title="Noviembre", page_icon="🟣")
 init_db()
 
-# Guardamos nombre, chat, icono, y número de turnos del usuario.
+# Store the user's name, chat history, header icon, and turn count
 if "nombre" not in st.session_state:
     st.session_state["nombre"] = None
 
@@ -15,181 +16,179 @@ if "chat" not in st.session_state:
     st.session_state["chat"] = []
 
 if "logo_icon" not in st.session_state:
-    st.session_state["logo_icon"] = "🟣"  
+    st.session_state["logo_icon"] = "🟣"
 
 if "turnos_usuario" not in st.session_state:
     st.session_state["turnos_usuario"] = 0
 
-# Deteccion por palabra clave 
+
 def detectar_emocion(texto: str) -> str:
+    """Classify free text into an emotion category using keyword matching."""
     t = texto.lower()
 
     palabras_alegria = [
-        "feliz", "contento", "contenta", "alegre", "me emociona", "emocionado",
-        "emocionada", "me ilusiona", "ilusionado", "ilusionada", "enamorado",
-        "enamorada", "me gusta", "me encanta", "gran día", "gran dia", "buen día", "buen dia"
+        "happy", "glad", "cheerful", "excited", "thrilled", "in love",
+        "i love", "i like", "great day", "good day", "wonderful day"
     ]
     palabras_tristeza = [
-        "triste", "lloré", "llore", "llorando", "me duele", "muerte", "murió",
-        "murio", "perdí", "perdi", "extraño", "extranio", "lo extraño", "la extraño",
-        "vacío", "vacio", "nostalgia", "solo", "sola", "soledad"
+        "sad", "cried", "crying", "hurts", "death", "died", "lost", "i lost",
+        "i miss", "missing", "empty", "nostalgia", "alone", "lonely", "loneliness"
     ]
     palabras_ira = [
-        "enojo", "enojado", "enojada", "odio", "coraje", "harto", "harta",
-        "molesto", "molesta", "rabia"
+        "angry", "mad", "hate", "furious", "fed up", "annoyed", "rage", "pissed off"
     ]
     palabras_reflexion = [
-        "he estado pensando", "he pensado", "me doy cuenta", "creo que",
-        "reflexionando", "me puse a pensar"
+        "i've been thinking", "i have been thinking", "i realize", "i think that",
+        "reflecting", "i started thinking", "it made me think"
     ]
     palabras_metas = [
-    "quiero lograr",
-    "mi objetivo",
-    "mi meta",
-    "meta es",
-    "planeo",
-    "planeo hacer",
-    "quiero hacer",
-    "quiero ganar",
-    "quiero ahorrar",
-    "pienso ahorrar",
-    "de aquí a fin de año",
-    "de aqui a fin de año",
-    "de aqui a fin de mes",
-    "ahorrar 100 mil",
-    "hacer 100 mil",
-    "juntar 100 mil",
-    "ahorrar cien mil",
+    "i want to achieve",
+    "my objective",
+    "my goal",
+    "goal is",
+    "i plan to",
+    "i'm planning to",
+    "i want to do",
+    "i want to earn",
+    "i want to save",
+    "planning to save",
+    "by the end of the year",
+    "by the end of the month",
+    "save 100k",
+    "make 100k",
+    "put together 100k",
+    "save a hundred thousand",
     ]
     palabras_momento = [
-        "hoy pasó", "hoy paso", "ayer fue", "me marcó", "me marco",
-        "me sorprendió", "me sorprendio", "pasó algo", "paso algo"
+        "today something happened", "yesterday was", "it marked me",
+        "it surprised me", "something happened", "happened today"
     ]
 
-    # prioridad de deteccion
+    # Check categories in priority order, most emotionally urgent first
     for w in palabras_ira:
         if w in t:
-            return "ira"
+            return "anger"
     for w in palabras_tristeza:
         if w in t:
-            return "tristeza"
+            return "sadness"
     for w in palabras_alegria:
         if w in t:
-            return "alegria"
+            return "joy"
     for w in palabras_metas:
         if w in t:
-            return "meta"
+            return "goal"
     for w in palabras_reflexion:
         if w in t:
-            return "reflexion"
+            return "reflection"
     for w in palabras_momento:
         if w in t:
-            return "momento"
+            return "moment"
 
     return "neutral"
 
-# Convierte la emoción detectada en un icono/bolita de color para el encabezado.
+
 def emocion_a_icono(emocion: str) -> str:
+    """Map a detected emotion to its header icon color."""
     mapa = {
-        "alegria": "🟡",
-        "tristeza": "🔵",
-        "ira": "🔴",
-        "reflexion": "🟠",
-        "meta": "🟢",
-        "momento": "🟣",   # momento importante / recuerdo
+        "joy": "🟡",
+        "sadness": "🔵",
+        "anger": "🔴",
+        "reflection": "🟠",
+        "goal": "🟢",
+        "moment": "🟣",   # important moment / memory
         "neutral": "🟣"
     }
     return mapa.get(emocion, "🟣")
 
 
-# Respuestas predefinidas, acompaña y abre conversación.
 def construir_respuesta(texto_usuario: str, nombre: str, emocion: str, turno: int):
+    """Build Noviembre's reply text and emotion tag for the current turn."""
 
-    # Primer mensaje: abrir espacio
+    # First turn always opens space rather than reacting to emotion
     if turno == 1:
         if nombre:
             return (
-                f"¿Quieres contarme un poco más sobre eso, {nombre}? "
-                "Podemos irlo desmenuzando sin prisa.",
+                f"Would you like to tell me a bit more about that, {nombre}? "
+                "We can take it apart slowly, no rush.",
                 "neutral",
             )
         else:
             return (
-                "¿Quieres contarme un poco más sobre eso? "
-                "Podemos irlo desmenuzando sin prisa.",
+                "Would you like to tell me a bit more about that? "
+                "We can take it apart slowly, no rush.",
                 "neutral",
             )
 
-    # Alegría / enamoramiento
-    if emocion == "alegria":
+    # Joy / infatuation
+    if emocion == "joy":
         opciones = [
-            "Suena a que algo bonito pasó hoy. Me da gusto por ti. "
-            "Si quieres seguimos hablando de eso, o me puedes contar qué fue lo que más te gustó del momento.",
-            "Se siente mucha luz en lo que escribes. "
-            "Si te nace, cuéntame un detalle que quieras guardar de este día.",
+            "Sounds like something good happened today. I'm glad for you. "
+            "If you want, we can keep talking about it, or you can tell me what you liked most about it.",
+            "There's a lot of light in what you're writing. "
+            "If it feels right, tell me one detail you'd like to hold on to from today.",
         ]
-        return random.choice(opciones), "alegria"
+        return random.choice(opciones), "joy"
 
-    # Tristeza / nostalgia
-    if emocion == "tristeza":
+    # Sadness / nostalgia
+    if emocion == "sadness":
         opciones = [
-            "Lo que me cuentas se siente pesado, como algo que todavía duele. "
-            "No estás solo en esto, aunque sea a través de una pantalla. "
-            "Si te ayuda, podemos ir hablando de a pedacitos.",
-            "Parece que esto te toca profundo. "
-            "Podemos quedarnos aquí un rato, sin prisa, si quieres seguir contándolo.",
+            "What you're telling me feels heavy, like something that still hurts. "
+            "You're not alone in this, even through a screen. "
+            "If it helps, we can go through it little by little.",
+            "This seems to touch you deeply. "
+            "We can sit with it for a while, no rush, if you want to keep talking.",
         ]
-        return random.choice(opciones), "tristeza"
+        return random.choice(opciones), "sadness"
 
-    # Ira – solo contener, no sugerir guardar
-    if emocion == "ira":
+    # Anger - only hold space, never suggest saving the entry
+    if emocion == "anger":
         opciones = [
-            "Se nota que esto te molesta bastante. Es válido sentirlo. "
-            "Si quieres, podemos ir sacando el enojo poco a poco para que no se quede atorado.",
-            "Suena a que fue un momento muy frustrante. "
-            "Puedes soltarlo aquí sin filtros si eso te ayuda.",
+            "I can tell this is really bothering you. It's valid to feel that. "
+            "If you want, we can let the anger out little by little so it doesn't stay stuck.",
+            "Sounds like a really frustrating moment. "
+            "You can let it out here without holding back, if that helps.",
         ]
-        return random.choice(opciones), "ira"
+        return random.choice(opciones), "anger"
 
-    # Metas / objetivos
-    if emocion == "meta":
+    # Goals / objectives
+    if emocion == "goal":
         opciones = [
-            "Eso que dices suena a una meta importante para ti. "
-            "Podemos irla bajando a pasos pequeños si te late.",
-            "Me gusta cómo lo planteas, se siente como un objetivo claro. "
-            "¿Te gustaría desmenuzarlo en pasos sencillos?",
+            "What you're saying sounds like an important goal for you. "
+            "We can break it down into small steps if you'd like.",
+            "I like how you're putting it, it feels like a clear objective. "
+            "Would you like to break it down into simple steps?",
         ]
-        return random.choice(opciones), "meta"
+        return random.choice(opciones), "goal"
 
-    # Reflexiones
-    if emocion == "reflexion":
+    # Reflections
+    if emocion == "reflection":
         opciones = [
-            "Me gusta cómo lo estás mirando, se nota que has estado pensando en esto. "
-            "Si quieres seguimos profundizando un poco más.",
-            "Eso que escribes suena a una buena reflexión. "
-            "Podemos intentar poner en palabras qué te estás llevando de todo esto.",
+            "I like how you're looking at this, you've clearly been thinking about it. "
+            "If you want, we can dig a little deeper.",
+            "What you're writing sounds like a solid reflection. "
+            "We can try putting into words what you're taking away from all this.",
         ]
-        return random.choice(opciones), "reflexion"
+        return random.choice(opciones), "reflection"
 
-    # Momentos importantes
-    if emocion == "momento":
+    # Important moments
+    if emocion == "moment":
         opciones = [
-            "Parece que lo que pasó dejó marca en tu día. "
-            "Si quieres, podemos detenernos en ese momento y verlo con más calma.",
-            "Suena a uno de esos momentos que se quedan dando vueltas en la cabeza. "
-            "Si te ayuda, cuéntame qué fue lo que más te movió.",
+            "Seems like what happened left a mark on your day. "
+            "If you want, we can slow down and look at that moment more closely.",
+            "Sounds like one of those moments that keeps replaying in your mind. "
+            "If it helps, tell me what moved you most about it.",
         ]
-        return random.choice(opciones), "momento"
+        return random.choice(opciones), "moment"
 
-    # Neutro / sin categoría clara
+    # Neutral / no clear category
     opciones = [
-        "Te leo. Si quieres, dime un poco más para entender mejor lo que estás viviendo.",
-        "Gracias por compartirlo. Si te nace, podemos ir profundizando un poquito más.",
+        "I hear you. If you want, tell me a bit more so I can understand what you're going through.",
+        "Thanks for sharing this. If it feels right, we can dig a little deeper.",
     ]
     return random.choice(opciones), "neutral"
 
 
-# Estilos Burbujas y tarjeta flotante
+# Chat bubble and floating card styles
 st.markdown(
     """
 <style>
@@ -197,7 +196,7 @@ st.markdown(
     margin-top: 2rem;
 }
 
-/* burbuja base */
+/* base bubble */
 .bubble {
     padding: 0.7rem 1rem;
     border-radius: 1rem;
@@ -206,44 +205,44 @@ st.markdown(
     font-size: 0.95rem;
 }
 
-/* usuario */
+/* user */
 .user-bubble {
     background-color: #3a3a3a;
     margin-left: auto;
     text-align: right;
 }
 
-/* Noviembre (bot) por emoción */
+/* Noviembre (bot) by emotion */
 .bot-neutral {
     background-color: #2f3136;
 }
 
-.bot-alegria {
+.bot-joy {
     background-color: #f7d34a;
     color: #000000;
 }
 
-.bot-tristeza {
+.bot-sadness {
     background-color: #1f3b57;
 }
 
-.bot-ira {
+.bot-anger {
     background-color: #5c1f1f;
 }
 
-.bot-reflexion {
+.bot-reflection {
     background-color: #b96b2c;
 }
 
-.bot-meta {
+.bot-goal {
     background-color: #276749;
 }
 
-.bot-momento {
+.bot-moment {
     background-color: #553c9a;
 }
 
-/* tarjeta flotante (para futuros recordatorios / sugerencias) */
+/* floating card (for future reminders / suggestions) */
 .floating-card {
     margin-top: 1rem;
     padding: 0.8rem 1rem;
@@ -257,8 +256,9 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# Función para dibujar burbujas con estilos.
+
 def mostrar_burbuja(texto: str, role: str, emocion: str = "neutral"):
+    """Render a single chat bubble styled by role and emotion."""
     if role == "user":
         css_class = "bubble user-bubble"
     else:
@@ -266,24 +266,24 @@ def mostrar_burbuja(texto: str, role: str, emocion: str = "neutral"):
     st.markdown(f"<div class='{css_class}'>{texto}</div>", unsafe_allow_html=True)
 
 
-# Si no sabemos cómo se llama el usuario, primero pedimos el nombre.
+# Ask for the user's name first if we don't have it yet
 if st.session_state["nombre"] is None:
 
-    # encabezado neutro
+    # Neutral welcome header
     st.markdown(
         """
         <div style='text-align:center; margin-top: 3rem;'>
             <span style='font-size:3rem;'>🟣</span>
             <span style='font-size:3rem; font-weight:700; margin-left:0.4rem;'>Noviembre</span>
-            <p style='margin-top:0.5rem; color:#cccccc;'>Bienvenido. Antes de empezar, ¿cómo te llamas?</p>
+            <p style='margin-top:0.5rem; color:#cccccc;'>Welcome. Before we begin, what's your name?</p>
         </div>
         """,
         unsafe_allow_html=True,
     )
 
     with st.form("nombre_form"):
-        nombre_input = st.text_input("¿Cómo te llamas?")
-        continuar = st.form_submit_button("Continuar")
+        nombre_input = st.text_input("What's your name?")
+        continuar = st.form_submit_button("Continue")
 
     if continuar and nombre_input.strip():
         st.session_state["nombre"] = nombre_input.strip().title()
@@ -291,11 +291,11 @@ if st.session_state["nombre"] is None:
 
     st.stop()
 
-# mostramos el encabezado y el historial para escribir.
+# Render the header and chat history once the name is known
 nombre = st.session_state["nombre"]
 icono_actual = st.session_state["logo_icon"]
 
-subtitle = f"{nombre}, me alegra verte de nuevo por aquí. ¿Cómo estuvo tu día?"
+subtitle = f"{nombre}, it's good to see you again. How was your day?"
 
 st.markdown(
     f"""
@@ -310,7 +310,7 @@ st.markdown(
 
 st.markdown("<div class='chat-container'>", unsafe_allow_html=True)
 
-# historial de mensajes
+# Replay the full chat history as bubbles
 for msg in st.session_state["chat"]:
     if msg["role"] == "user":
         mostrar_burbuja(msg["text"], "user")
@@ -319,31 +319,31 @@ for msg in st.session_state["chat"]:
 
 st.markdown("</div>", unsafe_allow_html=True)
 
-# Enter
+# Message input
 with st.form("chat_form", clear_on_submit=True):
     texto_usuario = st.text_input(
         label="",
-        placeholder="Escribe aquí lo que quieras compartir...",
+        placeholder="Write here whatever you'd like to share...",
         label_visibility="collapsed",
     )
     enviado = st.form_submit_button("➤")
 
-# Guardamos mensaje usuario en historial, detectamos respuesta/icono y refrescamos pantalla
+# Append the user turn, detect the reply and icon, then rerun
 if enviado and texto_usuario.strip():
     contenido = texto_usuario.strip()
 
-    # guardamos mensaje del usuario en el historial
+    # Log the user's message in the session chat history
     st.session_state["chat"].append(
         {"role": "user", "text": contenido, "emotion": None}
     )
 
     st.session_state["turnos_usuario"] += 1
 
-    # detectar emoción e actualizar color del puntito
+    # Detect the emotion and update the header icon color
     emocion_detectada = detectar_emocion(contenido)
     st.session_state["logo_icon"] = emocion_a_icono(emocion_detectada)
 
-    # construir respuesta
+    # Build Noviembre's reply for this turn
     respuesta, emocion_respuesta = construir_respuesta(
         contenido,
         nombre,
@@ -351,7 +351,7 @@ if enviado and texto_usuario.strip():
         st.session_state["turnos_usuario"],
     )
 
-    # añadimos respuesta de Noviembre
+    # Log Noviembre's reply in the session chat history
     st.session_state["chat"].append(
         {
             "role": "bot",
@@ -360,8 +360,19 @@ if enviado and texto_usuario.strip():
         }
     )
 
-    # recargar para ver el nuevo mensaje
+    # Persist this turn to SQLite and to the JSON memory
+    insertar("chat", contenido, respuesta)
+    append_entry(
+        {
+            "section": "chat",
+            "text": contenido,
+            "detected_emotion": emocion_detectada,
+            "reply": respuesta,
+            "reply_emotion": emocion_respuesta,
+            "tags": [],
+            "mode": "normal",
+        }
+    )
+
+    # Rerun to display the new messages
     st.rerun()
-
-
-

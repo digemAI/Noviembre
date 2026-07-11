@@ -10,3 +10,4 @@ __pycache__/
 database.db
 .streamlit/
 .DS_Store
+*:Zone.Identifier
