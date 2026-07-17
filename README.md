@@ -1,31 +1,30 @@
-Noviembre
+# Noviembre
 
-An emotional journaling companion built with Streamlit — it listens, remembers, and helps the user understand what they're going through, one entry at a time.
+Noviembre is the friend that's always there — the one you can tell everything to, who stays through the good and the bad, and helps you actually move toward your goals. Built with Streamlit, it's designed so that opening it feels less like using an app and more like reaching out to someone you trust.
 
-What it does today
+---
+
+## The problem
+
+Not everyone has someone who's always there — someone to tell everything to, who sticks around through the good moments and the hard ones, and who actually helps you get closer to what you're working toward. Most journaling apps just store text. They don't feel like anyone is listening.
+
+---
+
+## What it does today
+
+- **Structured journaling** across four entry types — emotions, reflections, goals, and important moments — each with its own guided prompts and a warm, non-generic response.
+- **Freeform conversational chat** with lightweight keyword-based emotion detection (joy, sadness, anger, reflection, goal, moment) that adapts the reply and the UI's color accent in real time.
+- **Living memory**: every entry is saved locally, so past reflections stay available and Noviembre never starts from zero.
+
+---
+
+## Where it's going
+
+Right now Noviembre listens and organizes. Next, it starts noticing — recognizing patterns across entries and responding with more context, not just per-entry.
+
+---
 
 
-Structured journaling across four entry types — emotions, reflections, goals, and important moments — each with its own guided prompts and a warm, non-generic response.
+## Why I built it
 
-Freeform conversational chat with lightweight keyword-based emotion detection (joy, sadness, anger, reflection, goal, moment) that adapts the reply and the UI's color accent in real time.
-
-Persistent memory on two layers: every entry is written to SQLite as a flat history log, and to a structured JSON memory file with timestamps and categories — the app remembers across sessions, not just within one.
-
-A calm, consistent visual identity (color-coded chat bubbles per detected emotion, minimal UI) that reinforces the product's tone: presence over productivity.
-
-
-Where it's going
-
-This is V1 of a 9-stage roadmap — the foundation, not the finished product. Noviembre is under active development: future versions deepen the conversational tone, add real pattern recognition across entries, and move from keyword matching toward genuine NLP-based interpretation, while staying true to what it's meant to be — presence, not productivity.
-
-Architecture
-
-Nov.py                 # Main chat screen — keyword-based emotion detection, conversational replies
-pages/
-  1_Emotions.py          # Structured emotion entry
-  2_Reflections.py       # Structured reflection entry
-  3_Goals.py              # Goal entry with target date
-  4_Moments.py             # Important-moment entry with impact rating
-utils/
-  sqlite_store.py       # SQLite persistence layer
-  nov_memory.py          # JSON-based long-term memory (append_entry, get_entries, get_last_entry)
+I built Noviembre to be that presence: not a tool you use, but a friend you open up to because you *want* to talk to them.
