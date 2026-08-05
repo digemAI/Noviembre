@@ -14,16 +14,16 @@ importancia = st.slider("How much did this moment affect you? (0 to 10)", 0, 10,
 
 # Warm, randomized companion message shown above the save button
 st.info(random.choice([
-    "I'm here to help you.",
-    "Thank you for sharing something so personal with me",
-    "Your moment and its intensity are completely valid",
+    "I'm glad you're bringing this here.",
+    "Thank you for sharing something so personal with me.",
+    "Your moment and its intensity are completely valid.",
     "Would you like to tell me more about that title or that number?",
-    "Naming and measuring our moments is a brave act of self-knowledge",
-    "This is a safe space for everything this moment makes you feel",
-    "Keeping a moment like this in memory matters. Thank you for letting me see it",
-    "You're not alone in how experiences affect you",
-    "If you want, we can stay here with that feeling",
-    "Your story and its moments matter. I'm still here for whatever you need",
+    "Naming and measuring our moments is a brave act of self-knowledge.",
+    "This is a safe space for everything this moment makes you feel.",
+    "Keeping a moment like this matters. Thank you for letting me see it.",
+    "You're not alone in how experiences affect you.",
+    "If you want, we can just stay here with that feeling for a bit.",
+    "Your story and its moments matter. I'm still here for whatever you need.",
     ]))
 
 # Persist the entry to SQLite and to the JSON memory on save
