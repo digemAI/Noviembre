@@ -21,6 +21,9 @@ if "logo_icon" not in st.session_state:
 if "turnos_usuario" not in st.session_state:
     st.session_state["turnos_usuario"] = 0
 
+if "last_emotion" not in st.session_state:
+    st.session_state["last_emotion"] = None
+
 
 def detectar_emocion(texto: str) -> str:
     """Classify free text into an emotion category using keyword matching."""
@@ -101,91 +104,95 @@ def emocion_a_icono(emocion: str) -> str:
     return mapa.get(emocion, "🟣")
 
 
-def construir_respuesta(texto_usuario: str, nombre: str, emocion: str, turno: int):
-    """Build Noviembre's reply text and emotion tag for the current turn."""
+def construir_respuesta(texto_usuario: str, nombre: str, emocion: str, turno: int, continuidad: bool = False):
+    """Build a warm, natural reply that deepens the conversation and, when the same
+    feeling resurfaces within this chat, acknowledges the thread instead of resetting."""
+
+    # Occasionally use the person's name past the opening turn so it reads
+    # like a friend talking, not a form addressing a user
+    usar_nombre = nombre and (turno == 1 or random.random() < 0.35)
+    nombre_frase = f", {nombre}" if usar_nombre else ""
 
     # First turn always opens space rather than reacting to emotion
     if turno == 1:
-        if nombre:
-            return (
-                f"Would you like to tell me a bit more about that, {nombre}? "
-                "We can take it apart slowly, no rush.",
-                "neutral",
-            )
-        else:
-            return (
-                "Would you like to tell me a bit more about that? "
-                "We can take it apart slowly, no rush.",
-                "neutral",
-            )
+        return (
+            f"Would you like to tell me a bit more about that{nombre_frase}? "
+            "We can take it apart slowly, no rush.",
+            "neutral",
+        )
 
-    # Joy / infatuation
-    if emocion == "joy":
-        opciones = [
-            "Sounds like something good happened today. I'm glad for you. "
-            "If you want, we can keep talking about it, or you can tell me what you liked most about it.",
-            "There's a lot of light in what you're writing. "
-            "If it feels right, tell me one detail you'd like to hold on to from today.",
-        ]
-        return random.choice(opciones), "joy"
+    respuestas = {
+        "joy": [
+            f"Sounds like something good happened today{nombre_frase}. I'm glad for you.",
+            "There's a lot of light in what you're writing. It's nice to sit in this with you for a second.",
+            f"I can feel the good mood in this{nombre_frase} — thank you for bringing it here.",
+            "This is the kind of thing worth pausing on. It matters that you wanted to share it.",
+        ],
+        "sadness": [
+            "What you're telling me feels heavy, like something that still hurts. You're not alone in this, even through a screen.",
+            "This seems to touch you deeply. We can sit with it for a while, no rush.",
+            f"I hear how much this weighs on you{nombre_frase}. I'm not going anywhere.",
+            "Some things don't need fixing right away — just someone to hold them with you for a bit.",
+        ],
+        "anger": [
+            "I can tell this is really bothering you. It's valid to feel that.",
+            "Sounds like a really frustrating moment. You can let it out here without holding back.",
+            f"This clearly got to you{nombre_frase}, and that's fair. Say whatever you need to.",
+            "No need to soften it for me. Whatever this brought up, it can land here.",
+        ],
+        "goal": [
+            "What you're saying sounds like an important goal for you.",
+            f"I like how you're putting it{nombre_frase}, it feels like a clear objective.",
+            "There's real intention behind this. It's good to hear you naming it out loud.",
+            "This sounds like something you've actually been carrying for a while, not just a passing idea.",
+        ],
+        "reflection": [
+            "I like how you're looking at this, you've clearly been thinking about it.",
+            "What you're writing sounds like a solid reflection.",
+            f"You're really turning this over, aren't you{nombre_frase}? I like following your thinking here.",
+            "This sounds like one of those thoughts that keeps circling back until it's said out loud.",
+        ],
+        "moment": [
+            "Seems like what happened left a mark on your day.",
+            "Sounds like one of those moments that keeps replaying in your mind.",
+            f"This clearly stuck with you{nombre_frase} — thank you for bringing it here instead of letting it just pass.",
+            "There's something about this moment you're still holding onto. I'm glad you're telling me.",
+        ],
+        "neutral": [
+            "I hear you. Whatever this is, I'm listening.",
+            "Thanks for sharing this with me.",
+            f"I'm here{nombre_frase}, whatever this ends up being about.",
+            "Take your time with this — there's no rush to make it make sense right away.",
+        ],
+    }
 
-    # Sadness / nostalgia
-    if emocion == "sadness":
-        opciones = [
-            "What you're telling me feels heavy, like something that still hurts. "
-            "You're not alone in this, even through a screen. "
-            "If it helps, we can go through it little by little.",
-            "This seems to touch you deeply. "
-            "We can sit with it for a while, no rush, if you want to keep talking.",
-        ]
-        return random.choice(opciones), "sadness"
+    # Optional follow-up question that invites the person to go deeper,
+    # never forced onto anger — that moment needs room, not more questions
+    preguntas = {
+        "joy": "What was the best part of it for you?",
+        "sadness": "Is there a piece of this you'd like to stay with a little longer?",
+        "goal": "What would the very first step toward it look like?",
+        "reflection": "What do you think this is trying to tell you?",
+        "moment": "What do you think you'll remember most about it?",
+        "neutral": "What's sitting with you the most right now?",
+    }
 
-    # Anger - only hold space, never suggest saving the entry
-    if emocion == "anger":
-        opciones = [
-            "I can tell this is really bothering you. It's valid to feel that. "
-            "If you want, we can let the anger out little by little so it doesn't stay stuck.",
-            "Sounds like a really frustrating moment. "
-            "You can let it out here without holding back, if that helps.",
-        ]
-        return random.choice(opciones), "anger"
-
-    # Goals / objectives
-    if emocion == "goal":
-        opciones = [
-            "What you're saying sounds like an important goal for you. "
-            "We can break it down into small steps if you'd like.",
-            "I like how you're putting it, it feels like a clear objective. "
-            "Would you like to break it down into simple steps?",
-        ]
-        return random.choice(opciones), "goal"
-
-    # Reflections
-    if emocion == "reflection":
-        opciones = [
-            "I like how you're looking at this, you've clearly been thinking about it. "
-            "If you want, we can dig a little deeper.",
-            "What you're writing sounds like a solid reflection. "
-            "We can try putting into words what you're taking away from all this.",
-        ]
-        return random.choice(opciones), "reflection"
-
-    # Important moments
-    if emocion == "moment":
-        opciones = [
-            "Seems like what happened left a mark on your day. "
-            "If you want, we can slow down and look at that moment more closely.",
-            "Sounds like one of those moments that keeps replaying in your mind. "
-            "If it helps, tell me what moved you most about it.",
-        ]
-        return random.choice(opciones), "moment"
-
-    # Neutral / no clear category
-    opciones = [
-        "I hear you. If you want, tell me a bit more so I can understand what you're going through.",
-        "Thanks for sharing this. If it feels right, we can dig a little deeper.",
+    frases_continuidad = [
+        "This isn't the first time this has come up today — I'm glad you keep coming back to it with me.",
+        "We keep circling back to this, and that's okay. I'm still here for it.",
+        "This feels like something asking for more space today. Let's stay with it a little longer.",
     ]
-    return random.choice(opciones), "neutral"
+
+    base = random.choice(respuestas.get(emocion, respuestas["neutral"]))
+
+    # Layer in continuity if the same feeling resurfaced, otherwise sometimes
+    # invite the person to go a little deeper into what they just shared
+    if continuidad:
+        base += " " + random.choice(frases_continuidad)
+    elif preguntas.get(emocion) and random.random() < 0.5:
+        base += " " + preguntas[emocion]
+
+    return base, emocion
 
 
 # Chat bubble and floating card styles
@@ -343,12 +350,20 @@ if enviado and texto_usuario.strip():
     emocion_detectada = detectar_emocion(contenido)
     st.session_state["logo_icon"] = emocion_a_icono(emocion_detectada)
 
+    # Check whether the same feeling is resurfacing within this chat session
+    continuidad = (
+        st.session_state["turnos_usuario"] > 1
+        and st.session_state["last_emotion"] == emocion_detectada
+    )
+    st.session_state["last_emotion"] = emocion_detectada
+
     # Build Noviembre's reply for this turn
     respuesta, emocion_respuesta = construir_respuesta(
         contenido,
         nombre,
         emocion_detectada,
         st.session_state["turnos_usuario"],
+        continuidad,
     )
 
     # Log Noviembre's reply in the session chat history
