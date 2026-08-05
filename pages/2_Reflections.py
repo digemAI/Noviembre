@@ -13,16 +13,16 @@ extra = st.text_input("If you'd like, add a keyword or topic (optional)")
 
 # Warm, randomized companion message shown above the save button
 st.info(random.choice([
-    "A free mind supports mental health.",
-    "Giving your thoughts a voice is a great first step",
-    "Exploring your ideas is how the mind understands itself",
-    "Sometimes, just putting it into words brings clarity",
-    "Your thoughts matter, even the ones that feel confusing",
-    "The mind is a garden; exploring it is caring for it",
-    "There's no right or wrong thought here",
-    "share your inner world with me",
-    "Every reflection is part of your path",
-    "Allowing yourself this space is a gift you give yourself",
+    "A free mind is easier to carry.",
+    "Giving your thoughts a voice is a great first step.",
+    "Exploring your ideas is how the mind understands itself.",
+    "Sometimes just putting it into words brings clarity.",
+    "Your thoughts matter, even the ones that feel confusing.",
+    "The mind is a garden; exploring it is caring for it.",
+    "There's no right or wrong thought here.",
+    "I'd like to hear what's on your mind, in your own words.",
+    "Every reflection is part of your path.",
+    "Allowing yourself this space is a gift you give yourself.",
 ]))
 
 # Persist the entry to SQLite and to the JSON memory on save
@@ -43,7 +43,7 @@ if st.button("Save"):
         )
 
         # Confirm the save and flag the last entry for display below
-        st.success("Got it. Thanks for sharing.")
+        st.success("Got it — thank you for putting this into words.")
         st.session_state["show_last_saved"] = True
 
 # Show a short preview of the last saved entry, if any
