@@ -15,15 +15,15 @@ razon = st.text_area("Why do you want to achieve this goal? (optional)")
 # Warm, randomized companion message shown above the save button
 st.info(random.choice([
     "The feeling of accomplishing what you set out to do is incredible.",
-    "Every great achievement begins with the decision to try",
-    "Celebrating each small step is what builds the path",
-    "Simply having a goal already speaks to your determination",
-    "The journey toward your goal will also transform you",
-    "It doesn't matter if the goal is big or small; what matters is that it's yours",
-    "Sharing your objective is a powerful way to give it life",
-    "Goals are the compass that gives our days direction",
-    "I trust you have what it takes to pursue it",
-    "That goal is a reflection of what matters to you",
+    "Every great achievement begins with the decision to try.",
+    "Celebrating each small step is what builds the path.",
+    "Simply naming a goal already says something about you.",
+    "The journey there will change you too, not just the outcome.",
+    "It doesn't matter if the goal is big or small — it's yours, and that's enough.",
+    "I like that you're putting this into words instead of just carrying it around.",
+    "Whatever this goal means to you, I'd like to understand it.",
+    "I trust you have what it takes to pursue this.",
+    "This goal says something about what actually matters to you.",
 ]))
 
 if st.button("Save"):
