@@ -1,7 +1,6 @@
 # Noviembre
 
-Noviembre is the friend that's always there — the one you can tell everything to, who stays through the good and the bad, and helps you actually move toward your goals. Built with Streamlit, it's designed so that opening it feels less like using an app and more like reaching out to someone you trust.
-
+An emotional journaling companion built with Streamlit — it listens, remembers, and helps the user understand what they're going through, one entry at a time.
 ---
 
 ## The problem
@@ -13,14 +12,20 @@ Not everyone has someone who's always there — someone to tell everything to, w
 ## What it does today
 
 - **Structured journaling** across four entry types — emotions, reflections, goals, and important moments — each with its own guided prompts and a warm, non-generic response.
-- **Freeform conversational chat** with lightweight keyword-based emotion detection (joy, sadness, anger, reflection, goal, moment) that adapts the reply and the UI's color accent in real time.
-- **Living memory**: every entry is saved locally, so past reflections stay available and Noviembre never starts from zero.
+
+- **Freeform conversational chat** with lightweight keyword-based emotion detection (joy, sadness, anger, reflection, goal, moment) that adapts the reply and the UI's color accent in real time. Replies vary by emotion, occasionally invite the person to go deeper, and recognize when the same feeling resurfaces within a conversation instead of resetting each turn.
+
+- **Persistent memory on two layers**: every entry is written to SQLite as a flat history log, and to a structured JSON memory file with timestamps and categories — the app remembers across sessions, not just within one.
+- A calm, consistent visual identity (color-coded chat bubbles per detected emotion, minimal UI) that reinforces the product's tone: presence over productivity.
+
+- A **browsable History** view that groups everything you've shared by day and lets you filter by type (emotions, reflections, goals, moments, chat) — so loose entries read like a personal timeline instead of something you have to dig through.
 
 ---
 
 ## Where it's going
 
-Right now Noviembre listens and organizes. Next, it starts noticing — recognizing patterns across entries and responding with more context, not just per-entry.
+**V3 of 9.** I gave it a way to look back — because a friend who forgets
+everything you've told them isn't a friend, they're a stranger with good manners.
 
 ---
 
