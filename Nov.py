@@ -21,8 +21,16 @@ if "logo_icon" not in st.session_state:
 if "turnos_usuario" not in st.session_state:
     st.session_state["turnos_usuario"] = 0
 
+# V2: track the last detected emotion so the chat can notice when the
+# same feeling resurfaces within a session, instead of resetting each turn
 if "last_emotion" not in st.session_state:
     st.session_state["last_emotion"] = None
+
+# V4: track the last turn the human-connection bridge was shown, so it
+# doesn't repeat every time the isolation signal appears — a few turns
+# of space keeps it feeling like an occasional invitation, not a nag
+if "ultimo_turno_puente" not in st.session_state:
+    st.session_state["ultimo_turno_puente"] = None
 
 
 def detectar_emocion(texto: str) -> str:
@@ -90,6 +98,27 @@ def detectar_emocion(texto: str) -> str:
     return "neutral"
 
 
+def detectar_aislamiento(texto: str) -> bool:
+    """Flag explicit statements of having no one to talk to.
+
+    V4: separate from emotion detection on purpose — sadness/loneliness
+    words already route to the "sadness" category, this only catches
+    the stronger, more literal signal that triggers the soft bridge
+    toward real human connection.
+    """
+    t = texto.lower()
+
+    frases_aislamiento = [
+        "no one to talk to", "nobody to talk to", "no one to talk with",
+        "i have no one", "i have nobody", "i don't have anyone",
+        "no friends", "i don't have any friends", "everyone left me",
+        "no one understands me", "i feel so alone", "completely alone",
+        "i'm isolated", "i feel isolated",
+    ]
+
+    return any(f in t for f in frases_aislamiento)
+
+
 def emocion_a_icono(emocion: str) -> str:
     """Map a detected emotion to its header icon color."""
     mapa = {
@@ -104,11 +133,17 @@ def emocion_a_icono(emocion: str) -> str:
     return mapa.get(emocion, "🟣")
 
 
-def construir_respuesta(texto_usuario: str, nombre: str, emocion: str, turno: int, continuidad: bool = False):
-    """Build a warm, natural reply that deepens the conversation and, when the same
-    feeling resurfaces within this chat, acknowledges the thread instead of resetting."""
+def construir_respuesta(texto_usuario: str, nombre: str, emocion: str, turno: int, continuidad: bool = False, aislamiento: bool = False):
+    """Build a warm, natural reply for the current turn.
 
-    # Occasionally use the person's name past the opening turn so it reads
+    V4: adds more intentional variety to the follow-up questions (a small
+    pool per emotion instead of one fixed line) and layers in a soft bridge
+    toward real human connection when an explicit isolation signal was
+    detected — never as an alert, always as one gentle, optional line added
+    to the normal reply, on top of V2/V3's continuity and question logic.
+    """
+
+    # V2: occasionally use the person's name past the opening turn so it reads
     # like a friend talking, not a form addressing a user
     usar_nombre = nombre and (turno == 1 or random.random() < 0.35)
     nombre_frase = f", {nombre}" if usar_nombre else ""
@@ -121,6 +156,8 @@ def construir_respuesta(texto_usuario: str, nombre: str, emocion: str, turno: in
             "neutral",
         )
 
+    # V2: four varied replies per emotion instead of V1's two, cutting down
+    # on repetition and generic phrasing across a longer conversation
     respuestas = {
         "joy": [
             f"Sounds like something good happened today{nombre_frase}. I'm glad for you.",
@@ -166,17 +203,46 @@ def construir_respuesta(texto_usuario: str, nombre: str, emocion: str, turno: in
         ],
     }
 
-    # Optional follow-up question that invites the person to go deeper,
-    # never forced onto anger — that moment needs room, not more questions
+    # V4: a small pool per emotion instead of one fixed line, so the
+    # follow-up feels intentional rather than a repeated template
     preguntas = {
-        "joy": "What was the best part of it for you?",
-        "sadness": "Is there a piece of this you'd like to stay with a little longer?",
-        "goal": "What would the very first step toward it look like?",
-        "reflection": "What do you think this is trying to tell you?",
-        "moment": "What do you think you'll remember most about it?",
-        "neutral": "What's sitting with you the most right now?",
+        "joy": [
+            "What was the best part of it for you?",
+            "What made today different from a regular day?",
+        ],
+        "sadness": [
+            "Is there a piece of this you'd like to stay with a little longer?",
+            "What would feel like a little relief right now, even a small one?",
+        ],
+        "goal": [
+            "What would the very first step toward it look like?",
+            "What's making this goal matter to you right now, specifically?",
+        ],
+        "reflection": [
+            "What do you think this is trying to tell you?",
+            "Is there a part of this you keep coming back to?",
+        ],
+        "moment": [
+            "What do you think you'll remember most about it?",
+            "Was there a moment inside the moment that stood out?",
+        ],
+        "neutral": [
+            "What's sitting with you the most right now?",
+            "Is there something underneath this you haven't said yet?",
+        ],
     }
 
+    # V4: soft, optional bridge toward real human connection — always framed
+    # as an invitation, never as an alert. This exists specifically so the
+    # attachment builds toward people in the person's life, not toward the app.
+    frases_puente = [
+        "This also sounds like something worth bringing up with someone close to you, if that feels right.",
+        "For what it's worth, this could be something worth talking through with someone you trust too, not just here.",
+        "I'm glad you're telling me this — it might also help to say it out loud to someone in your life.",
+    ]
+
+    # V2: acknowledges the thread instead of resetting when the same
+    # feeling has already come up earlier in this same chat session
     frases_continuidad = [
         "This isn't the first time this has come up today — I'm glad you keep coming back to it with me.",
         "We keep circling back to this, and that's okay. I'm still here for it.",
@@ -190,7 +256,12 @@ def construir_respuesta(texto_usuario: str, nombre: str, emocion: str, turno: in
     if continuidad:
         base += " " + random.choice(frases_continuidad)
     elif preguntas.get(emocion) and random.random() < 0.5:
-        base += " " + preguntas[emocion]
+        base += " " + random.choice(preguntas[emocion])
+
+    # V4: the bridge is additive, on top of whatever was already built above —
+    # it never replaces the emotional response itself
+    if aislamiento:
+        base += " " + random.choice(frases_puente)
 
     return base, emocion
 
@@ -350,12 +421,23 @@ if enviado and texto_usuario.strip():
     emocion_detectada = detectar_emocion(contenido)
     st.session_state["logo_icon"] = emocion_a_icono(emocion_detectada)
 
-    # Check whether the same feeling is resurfacing within this chat session
+    # V2: check whether the same feeling is resurfacing within this chat
+    # session, so the reply can acknowledge it instead of starting over
     continuidad = (
         st.session_state["turnos_usuario"] > 1
         and st.session_state["last_emotion"] == emocion_detectada
     )
     st.session_state["last_emotion"] = emocion_detectada
+
+    # V4: only show the human-connection bridge if the signal is present
+    # and it hasn't been shown in the last few turns
+    aislamiento_detectado = detectar_aislamiento(contenido)
+    mostrar_puente = False
+    if aislamiento_detectado:
+        ultimo_puente = st.session_state["ultimo_turno_puente"]
+        if ultimo_puente is None or (st.session_state["turnos_usuario"] - ultimo_puente) >= 3:
+            mostrar_puente = True
+            st.session_state["ultimo_turno_puente"] = st.session_state["turnos_usuario"]
 
     # Build Noviembre's reply for this turn
     respuesta, emocion_respuesta = construir_respuesta(
@@ -364,6 +446,7 @@ if enviado and texto_usuario.strip():
         emocion_detectada,
         st.session_state["turnos_usuario"],
         continuidad,
+        mostrar_puente,
     )
 
     # Log Noviembre's reply in the session chat history
@@ -382,6 +465,7 @@ if enviado and texto_usuario.strip():
             "section": "chat",
             "text": contenido,
             "detected_emotion": emocion_detectada,
+            "isolation_signal": aislamiento_detectado,
             "reply": respuesta,
             "reply_emotion": emocion_respuesta,
             "tags": [],
